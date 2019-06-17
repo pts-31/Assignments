@@ -10,7 +10,10 @@ public class Generics<T> implements Comparable<Generics>{
 		
 		b1.t=11;
 		b2.t="11";
-		System.out.println(b1.compareTo(b2));
+		if(b1.compareTo(b2)==0)
+			System.out.println("The objects are not the same");
+		else
+			System.out.println("The objects are the same");
 	}
 
 	@Override
