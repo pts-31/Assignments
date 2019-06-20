@@ -1,0 +1,104 @@
+USE `mydb` ;
+
+CREATE TABLE IF NOT EXISTS Movie (
+  `idMovie` INT NOT NULL,
+  `MovieName` VARCHAR(45) NULL,
+  `Director` VARCHAR(45) NULL,
+  `Genre` VARCHAR(45) NULL,
+  `Rating` INT NULL,
+  `Actors` VARCHAR(45) NULL,
+  PRIMARY KEY (`idMovie`));
+
+CREATE TABLE IF NOT EXISTS Theatre (
+  `idTheatre` INT NOT NULL,
+  `Name` VARCHAR(45) NULL,
+  `Location` VARCHAR(45) NULL,
+  PRIMARY KEY (`idTheatre`));
+
+CREATE TABLE IF NOT EXISTS ShowD (
+  `idShow` INT NOT NULL,
+  `ShowTime` TIME NULL,
+  `duration` TIME NULL,
+  `availableSeats` INT NULL,
+  `Movie_idMovie` INT NOT NULL,
+  `Theatre_idTheatre` INT NOT NULL,
+  PRIMARY KEY (`idShow`),
+  CONSTRAINT `fk_Show_Movie`
+    FOREIGN KEY (`Movie_idMovie`)
+    REFERENCES `mydb`.`Movie` (`idMovie`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Show_Theatre1`
+    FOREIGN KEY (`Theatre_idTheatre`)
+    REFERENCES `mydb`.`Theatre` (`idTheatre`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+CREATE TABLE IF NOT EXISTS Ticket (
+  `idTicket` INT NOT NULL,
+  `price` INT NULL,
+  `hallNo` INT NULL,
+  `SeatNo` VARCHAR(45) NULL,
+  `ShowDate` DATE NULL,
+  `Show_idShow` INT NOT NULL,
+  PRIMARY KEY (`idTicket`),
+  INDEX `fk_Ticket_Show1_idx` (`Show_idShow` ASC) VISIBLE,
+  CONSTRAINT `fk_Ticket_Show1`
+    FOREIGN KEY (`Show_idShow`)
+    REFERENCES `mydb`.`Show` (`idShow`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+CREATE TABLE IF NOT EXISTS Customer (
+  `idCustomer` INT NOT NULL,
+  `Name` VARCHAR(45) NULL,
+  `phoneNo` INT NULL,
+  `mailId` VARCHAR(45) NULL,
+  `Ticket_idTicket` INT NOT NULL,
+  PRIMARY KEY (`idCustomer`),
+  INDEX `fk_Customer_Ticket1_idx` (`Ticket_idTicket` ASC) VISIBLE,
+  CONSTRAINT `fk_Customer_Ticket1`
+    FOREIGN KEY (`Ticket_idTicket`)
+    REFERENCES `mydb`.`Ticket` (`idTicket`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+CREATE TABLE IF NOT EXISTS Admin (
+  `idAdmin` INT NOT NULL,
+  `password` VARCHAR(45) NULL,
+  `Customer_idCustomer` INT NOT NULL,
+  PRIMARY KEY (`idAdmin`),
+  INDEX `fk_Admin_Customer1_idx` (`Customer_idCustomer` ASC) VISIBLE,
+  CONSTRAINT `fk_Admin_Customer1`
+    FOREIGN KEY (`Customer_idCustomer`)
+    REFERENCES `mydb`.`Customer` (`idCustomer`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+DELIMITER $$
+CREATE PROCEDURE BookNewTicket(in customer int,in date date, in movie VARCHAR(20))
+begin
+declare Price int default 200;
+declare hallNo int default 1;
+declare seatNo int default 21F;
+declare idTicket int default 21;
+
+SELECT Name from Customer where idCustomer=customer;
+SELECT availableSeats from ShowD where idShow=1;
+IF availableSeats>0 THEN
+INSERT INTO Ticket VALUES (idTicket,hallNo,Price,seatNo,now());
+END IF;
+end$$
+DELIMITER $$
+
+
+DELIMITER $$
+CREATE PROCEDURE GetBookingDetails(in customer int,in date date, in movie VARCHAR(20))
+begin
+select Customer.Name,Movie.MovieName,date,ShowD.showTime from (((ShowD inner join Movie on Movie.idMovie=ShowD.Movie_idMovie) inner join Ticket on ShowD.showId=Ticket.Show_showId) inner join Customer on Ticket.ticketNo=Customer.Ticket_ticketNo) where Customer.idCustomer=customer;
+
+end$$
+DELIMITER $$
+ 
+ 
